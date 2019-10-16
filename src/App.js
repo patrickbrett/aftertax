@@ -13,29 +13,6 @@ class App extends Component {
         day: 365
       },
       timeframe: "week",
-      taxBrackets: {
-        Australia: {
-          brackets: {
-            0: 0,
-            18200: 0.19,
-            37000: 0.325,
-            90000: 0.37,
-            180000: 0.45
-          },
-          updated: new Date("2019-10-16"),
-          source: "https://www.ato.gov.au/Rates/Individual-income-tax-rates/"
-        },
-        "New Zealand": {
-          brackets: {
-            0: 0.105,
-            14000: 0.175,
-            48000: 0.3,
-            70000: 0.33
-          },
-          updated: new Date("2019-10-16"),
-          source: "https://www.ird.govt.nz/topics/income-tax/tax-codes-and-tax-rates/tax-rates-for-individuals"
-        },
-      },
       region: "Australia",
       income: {
         preTax: 0,
@@ -43,10 +20,49 @@ class App extends Component {
         amount: 0
       }
     }
+
+    this.regionData = {
+      "Australia": {
+        currency: "$",
+        brackets: {
+          0: 0,
+          18200: 0.19,
+          37000: 0.325,
+          90000: 0.37,
+          180000: 0.45
+        },
+        updated: new Date("2019-10-16"),
+        source: "https://www.ato.gov.au/Rates/Individual-income-tax-rates/"
+      },
+      "New Zealand": {
+        currency: "$",
+        brackets: {
+          0: 0.105,
+          14000: 0.175,
+          48000: 0.3,
+          70000: 0.33
+        },
+        updated: new Date("2019-10-16"),
+        source: "https://www.ird.govt.nz/topics/income-tax/tax-codes-and-tax-rates/tax-rates-for-individuals"
+      },
+      "France": {
+        currency: "€",
+        system: "flat-progressive",
+        brackets: {
+          0: 0,
+          9964: 0.14,
+          27519: 0.3,
+          73779: 0.41,
+          156224: 0.45
+        },
+        updated: new Date("2019-10-16"),
+        source: "https://www.blevinsfranks.com/news/article/france-tax-changes-2019"
+      }
+    }
   }
 
   preToAmount = pre => {
-    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
+    const taxBrackets = this.regionData[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     console.log(taxBrackets)
@@ -64,7 +80,7 @@ class App extends Component {
   }
 
   amountToPre = post => {
-    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
+    const taxBrackets = this.regionData[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -91,7 +107,7 @@ class App extends Component {
   }
 
   postToPre = post => {
-    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
+    const taxBrackets = this.regionData[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -122,14 +138,14 @@ class App extends Component {
   }
 
   getMarginalTaxRate = (pre) => {
-    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
+    const taxBrackets = this.regionData[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const lowerBound = lowerBounds.find((lowerBound, i) => {
         return (pre < (lowerBounds[i + 1] || Infinity))
       })
 
-    // console.log(pre, lowerBound, lowerBounds, taxBrackets[lowerBound])
+    // console.log(pre, lowerBound, lowerBounds, regions[lowerBound])
 
     return Math.floor(taxBrackets[lowerBound] * 100 * 100) / 100
   }
@@ -210,7 +226,7 @@ class App extends Component {
 
     const regionSelector = (
         <select value={region} onChange={this.updateRegion}>
-          {Object.keys(this.state.taxBrackets).map(regionName => <option key={regionName} value={regionName}>{regionName}</option>)}
+          {Object.keys(this.regionData).map(regionName => <option key={regionName} value={regionName}>{regionName}</option>)}
         </select>
     )
 

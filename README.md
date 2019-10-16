@@ -19,3 +19,9 @@ Todo:
 * Populous European countries
 * Populous US states
 * Populous Asian countries
+
+## Regional issues
+
+* Some countries have various contributions such as pension programs, health insurance etc.
+* Some countries (e.g. Germany) have different tax rates for married couples.
+* Some countries (i.e. countries that can do maths unlike Australia, such as Germany), have linearly increasing tax rates.
