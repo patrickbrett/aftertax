@@ -2,17 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import logo from "./logo.svg";
 
-/**
- * Todo:
- * * allow user to input decimals by having an "edit/save" functionality
- * * weekly income
- * * selector for week / month / day
- * * graph
- * * prettify
- * * options for medicare levy, simple rebates, etc
- * * display info about the brackets
- */
-
 class App extends Component {
   constructor(props) {
     super(props)
@@ -25,12 +14,21 @@ class App extends Component {
       },
       timeframe: "week",
       taxBrackets: {
-        0: 0,
-        18200: 0.19,
-        37000: 0.325,
-        90000: 0.37,
-        180000: 0.45
+        Australia: {
+          0: 0,
+          18200: 0.19,
+          37000: 0.325,
+          90000: 0.37,
+          180000: 0.45
+        },
+        "New Zealand": {
+          0: 0.105,
+          14000: 0.175,
+          48000: 0.3,
+          70000: 0.33
+        },
       },
+      region: "Australia",
       income: {
         preTax: 0,
         postTax: 0,
@@ -40,8 +38,10 @@ class App extends Component {
   }
 
   preToAmount = pre => {
-    const { taxBrackets } = this.state
+    const taxBrackets = this.state.taxBrackets[this.state.region]
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
+
+    console.log(taxBrackets)
 
     const amount = lowerBounds
       .map((lowerBound, index) => {
@@ -56,7 +56,7 @@ class App extends Component {
   }
 
   amountToPre = post => {
-    const { taxBrackets } = this.state
+    const taxBrackets = this.state.taxBrackets[this.state.region]
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -83,7 +83,7 @@ class App extends Component {
   }
 
   postToPre = post => {
-    const { taxBrackets } = this.state
+    const taxBrackets = this.state.taxBrackets[this.state.region]
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -164,21 +164,32 @@ class App extends Component {
     this.setState({ timeframe: value })
   }
 
+  updateRegion = e => {
+    const { value } = e.target
+
+    this.setState({ region: value, income: { preTax: 0, postTax: 0, amount: 0 } })
+  }
+
   changeHoursPerWeek = () => {}
   changeWeeksPerYear = () => {}
   changeHourlyRatePreTax = () => {}
   changeHourlyTax = () => {}
   changeHourlyRatePostTax = () => {}
   changeSpentIncomeAmount = () => {}
-  changeRecoveryHours = () => {}
 
   render() {
-    const { timeframes, timeframe, income } = this.state
+    const { timeframes, timeframe, income, region } = this.state
     const { preTax, postTax, amount } = income
 
     const timeframeSelector = (
         <select value={timeframe} onChange={this.updateTimeframe}>
           {Object.keys(timeframes).map(timeframe => <option key={timeframe} value={timeframe}>{timeframe}</option>)}
+        </select>
+    )
+
+    const regionSelector = (
+        <select value={region} onChange={this.updateRegion}>
+          {Object.keys(this.state.taxBrackets).map(regionName => <option key={regionName} value={regionName}>{regionName}</option>)}
         </select>
     )
 
@@ -197,6 +208,7 @@ class App extends Component {
     return (
       <div id="container">
         <div><img src={logo} alt="Aftertax" id="logo" /></div>
+        <div>Selected region: {regionSelector}</div>
         <div id="post-tax">
           To earn an after-tax income of $<input type="number" value={postTax} onChange={this.changePostTax} /> per year or <span className="value">${Math.floor(postTax / timeframes[timeframe] * 100) / 100}</span> per {timeframeSelector},
         </div>
