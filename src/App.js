@@ -15,17 +15,25 @@ class App extends Component {
       timeframe: "week",
       taxBrackets: {
         Australia: {
-          0: 0,
-          18200: 0.19,
-          37000: 0.325,
-          90000: 0.37,
-          180000: 0.45
+          brackets: {
+            0: 0,
+            18200: 0.19,
+            37000: 0.325,
+            90000: 0.37,
+            180000: 0.45
+          },
+          updated: new Date("2019-10-16"),
+          source: "https://www.ato.gov.au/Rates/Individual-income-tax-rates/"
         },
         "New Zealand": {
-          0: 0.105,
-          14000: 0.175,
-          48000: 0.3,
-          70000: 0.33
+          brackets: {
+            0: 0.105,
+            14000: 0.175,
+            48000: 0.3,
+            70000: 0.33
+          },
+          updated: new Date("2019-10-16"),
+          source: "https://www.ird.govt.nz/topics/income-tax/tax-codes-and-tax-rates/tax-rates-for-individuals"
         },
       },
       region: "Australia",
@@ -38,7 +46,7 @@ class App extends Component {
   }
 
   preToAmount = pre => {
-    const taxBrackets = this.state.taxBrackets[this.state.region]
+    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     console.log(taxBrackets)
@@ -56,7 +64,7 @@ class App extends Component {
   }
 
   amountToPre = post => {
-    const taxBrackets = this.state.taxBrackets[this.state.region]
+    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -83,7 +91,7 @@ class App extends Component {
   }
 
   postToPre = post => {
-    const taxBrackets = this.state.taxBrackets[this.state.region]
+    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
     const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
 
     const bracketAmounts = lowerBounds
@@ -111,6 +119,19 @@ class App extends Component {
     const preTax = (post - baseAmountInverted) / (1 - taxRate) + baseAmount
 
     return Math.floor(preTax * 100) / 100
+  }
+
+  getMarginalTaxRate = (pre) => {
+    const taxBrackets = this.state.taxBrackets[this.state.region].brackets
+    const lowerBounds = Object.keys(taxBrackets).map(value => Number(value))
+
+    const lowerBound = lowerBounds.find((lowerBound, i) => {
+        return (pre < (lowerBounds[i + 1] || Infinity))
+      })
+
+    // console.log(pre, lowerBound, lowerBounds, taxBrackets[lowerBound])
+
+    return Math.floor(taxBrackets[lowerBound] * 100 * 100) / 100
   }
 
   changePreTax = e => {
@@ -193,13 +214,15 @@ class App extends Component {
         </select>
     )
 
-    const hoursPerWeek = 20
-    const weeksPerYear = 46
+    const hoursPerWeek = 40
+    const weeksPerYear = 52
     const hoursPerYear = hoursPerWeek * weeksPerYear
 
     const hourlyRatePreTax = Math.floor(preTax / hoursPerYear * 100) / 100
     const hourlyTax = Math.floor(amount / hoursPerYear * 100) / 100
     const hourlyRatePostTax = Math.floor(postTax / hoursPerYear * 100) / 100
+
+    const marginalTaxRate = this.getMarginalTaxRate(preTax)
 
     const retainPercentage = Math.floor(postTax / preTax * 100 * 100) / 100
     const spentIncomeAmount = 50
@@ -225,8 +248,11 @@ class App extends Component {
           and an hourly tax of $<input type="number" value={hourlyTax} onChange={this.changeHourlyTax} />,
           resulting in an after-tax hourly rate of $<input type="number" value={hourlyRatePostTax} onChange={this.changeHourlyRatePostTax} />.
         </div>
-        <div>You retain {retainPercentage}% of your income.
-          This means that to recover $<input type="number" value={spentIncomeAmount} onChange={this.changeSpentIncomeAmount} /> of spent income,
+        <div>Your tax rate is {Math.floor((100 - retainPercentage) * 100) / 100}%, even though your marginal tax rate is {marginalTaxRate}%.
+          Therefore, you retain {retainPercentage}% of your income.
+        </div>
+        <div>
+          To recover $<input type="number" value={spentIncomeAmount} onChange={this.changeSpentIncomeAmount} /> of spent income,
           you must work for <span className="value">{recoveryHours}</span> hours.</div>
       </div>
     )
