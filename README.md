@@ -2,9 +2,10 @@ Calculate after-tax salary from pre-tax and vice versa
 
 Current region support:
 * Australia
+* New Zealand
 
 Todo:
-* Support for multiple regions (and associated currencies) - see below
+* Support for more regions (and associated currencies) - see below
 * allow user to input decimals by having an "edit/save" functionality
 * graph
 * improve styling
@@ -14,7 +15,6 @@ Todo:
 
 ## Planned support
 
-* New Zealand
 * UK
 * Populous European countries
 * Populous US states
